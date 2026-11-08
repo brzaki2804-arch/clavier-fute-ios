@@ -47,7 +47,7 @@ jobs:
       - name: Clé API App Store Connect
         run: |
           mkdir -p ~/private_keys
-          echo "${{ secrets.ASC_KEY_P8 }}" | base64 --decode > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          printf '%s\n' "${{ secrets.ASC_KEY_P8 }}" > ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
           test -s ~/private_keys/AuthKey_${ASC_KEY_ID}.p8
       - name: Numéro de build
         run: echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
