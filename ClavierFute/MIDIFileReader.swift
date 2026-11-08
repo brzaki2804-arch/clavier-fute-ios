@@ -132,11 +132,17 @@ enum MIDIFileReader {
             for s in segments where s.tick <= tick { seg = s }
             return seg.seconds + Double(tick - seg.tick) / ticksPerQuarter * seg.us / 1_000_000
         }
-        let notes = raw.map { n -> TranscribedNote in
-            let start = time(n.startTick)
-            return TranscribedNote(midi: n.midi, start: start, duration: max(0.05, time(n.endTick) - start), velocity: n.velocity)
+        var notes: [TranscribedNote] = []
+        notes.reserveCapacity(raw.count)
+        for n in raw {
+            let start: Double = time(n.startTick)
+            let end: Double = time(n.endTick)
+            notes.append(TranscribedNote(midi: n.midi, start: start, duration: max(0.05, end - start), velocity: n.velocity))
         }
-        .sorted { $0.start == $1.start ? $0.midi < $1.midi : $0.start < $1.start }
+        notes.sort { (a: TranscribedNote, b: TranscribedNote) -> Bool in
+            if a.start == b.start { return a.midi < b.midi }
+            return a.start < b.start
+        }
         let firstTempo = segments.first?.us ?? 500_000
         return Result(notes: notes, bpm: (60_000_000 / firstTempo).rounded(), title: title)
     }

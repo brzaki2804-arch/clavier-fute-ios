@@ -335,7 +335,11 @@ enum AudioTranscriber {
                 if c.duration > 0.02 { out.append(c) }
             }
         }
-        return out.sorted { $0.start == $1.start ? $0.midi < $1.midi : $0.start < $1.start }
+        out.sort { (a: TranscribedNote, b: TranscribedNote) -> Bool in
+            if a.start == b.start { return a.midi < b.midi }
+            return a.start < b.start
+        }
+        return out
     }
 
     /// Construit une leçon jouable dans l'app à partir de la mélodie (note la plus aiguë).

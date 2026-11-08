@@ -32,10 +32,16 @@ enum MusicXMLReader {
         guard !delegate.notes.isEmpty else { throw ScoreImportError.noNotes }
         let bpm = delegate.tempo ?? 100
         let spb = 60 / bpm
-        let notes = delegate.notes.map {
-            TranscribedNote(midi: $0.midi, start: $0.beat * spb, duration: max(0.1, $0.beats * spb), velocity: 90)
+        var notes: [TranscribedNote] = []
+        for raw in delegate.notes {
+            let start: Double = raw.beat * spb
+            let length: Double = max(0.1, raw.beats * spb)
+            notes.append(TranscribedNote(midi: raw.midi, start: start, duration: length, velocity: 90))
         }
-        .sorted { $0.start == $1.start ? $0.midi < $1.midi : $0.start < $1.start }
+        notes.sort { (a: TranscribedNote, b: TranscribedNote) -> Bool in
+            if a.start == b.start { return a.midi < b.midi }
+            return a.start < b.start
+        }
         return ScoreImportResult(notes: AudioTranscriber.cleaned(notes), bpm: bpm, title: delegate.title)
     }
 
