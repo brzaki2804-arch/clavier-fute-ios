@@ -44,6 +44,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Xcode
         run: xcodebuild -version
+      - name: Vérification des secrets
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          ok=1
+          for v in ASC_KEY_ID ASC_ISSUER_ID TEAM_ID ASC_KEY_P8; do
+            if [ -z "${!v}" ]; then echo "::error::Le secret $v est vide ou absent (Settings > Secrets and variables > Actions)."; ok=0; else echo "$v : présent (${#v} caractères de nom, valeur de ${#!v} caractères)"; fi
+          done
+          case "$ASC_KEY_P8" in *"BEGIN PRIVATE KEY"*) echo "ASC_KEY_P8 : format .p8 reconnu";; *) echo "::error::ASC_KEY_P8 ne contient pas une clé .p8 (il doit commencer par -----BEGIN PRIVATE KEY-----)"; ok=0;; esac
+          [ "$ok" = 1 ]
       - name: Clé API App Store Connect
         run: |
           mkdir -p ~/private_keys
