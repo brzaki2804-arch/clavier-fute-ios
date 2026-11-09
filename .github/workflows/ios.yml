@@ -11,6 +11,18 @@ on:
         default: false
 
 jobs:
+  diagnostic:
+    name: Diagnostic des secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Noms visibles (valeurs jamais affichées)
+        env:
+          SECRET_NAMES: ${{ toJSON(secrets) }}
+          VAR_NAMES: ${{ toJSON(vars) }}
+        run: |
+          echo "Secrets visibles : $(echo "$SECRET_NAMES" | python3 -c 'import json,sys; print(", ".join(sorted(json.load(sys.stdin).keys())) or "(aucun)")')"
+          echo "Variables visibles : $(echo "$VAR_NAMES" | python3 -c 'import json,sys; print(", ".join(sorted(json.load(sys.stdin).keys())) or "(aucune)")')"
+
   build:
     name: Compilation (sans signature)
     runs-on: macos-15
@@ -50,7 +62,8 @@ jobs:
         run: |
           ok=1
           for v in ASC_KEY_ID ASC_ISSUER_ID TEAM_ID ASC_KEY_P8; do
-            if [ -z "${!v}" ]; then echo "::error::Le secret $v est vide ou absent (Settings > Secrets and variables > Actions)."; ok=0; else echo "$v : présent (${#v} caractères de nom, valeur de ${#!v} caractères)"; fi
+            val="${!v}"
+            if [ -z "$val" ]; then echo "::error::Le secret $v est vide ou absent (Settings > Secrets and variables > Actions)."; ok=0; else echo "$v : présent (${#val} caractères)"; fi
           done
           case "$ASC_KEY_P8" in *"BEGIN PRIVATE KEY"*) echo "ASC_KEY_P8 : format .p8 reconnu";; *) echo "::error::ASC_KEY_P8 ne contient pas une clé .p8 (il doit commencer par -----BEGIN PRIVATE KEY-----)"; ok=0;; esac
           [ "$ok" = 1 ]
