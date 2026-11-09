@@ -25,6 +25,7 @@ jobs:
 
   build:
     name: Compilation (sans signature)
+    if: github.event_name == 'push'
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +47,6 @@ jobs:
   testflight:
     name: Archive et envoi TestFlight
     if: github.event_name == 'workflow_dispatch' && inputs.testflight
-    needs: build
     runs-on: macos-15
     env:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
